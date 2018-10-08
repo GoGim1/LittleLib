@@ -1,0 +1,2 @@
+# LittleLib
+my C++ library
