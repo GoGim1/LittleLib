@@ -158,6 +158,15 @@ struct Find<Array<T, Head, Args...>, Elem>
 {
     constexpr static bool value = (Head == Elem) || Find<Array<T, Args...>, Elem>::value;
 };
+
+template <typename A, typename A::type>
+struct Find2 {};
+template <typename T, T... Args, T Elem>
+struct Find2<Array<T, Args...>, Elem>
+{
+    constexpr static bool value = disjunction_v<bool_constant<Elem==Args>...>;
+};
+
 template <typename T, T Elem>
 struct Find<Array<T>, Elem>
 {
@@ -232,4 +241,92 @@ struct Map
     //                     typename Map<typename Tail<A>::type, F>::type, 
     //                     F<Head<A>::value>::value
     //                 >::type, A>;
+};
+
+template <typename, template<auto> class>
+struct Map2{};
+template <typename T, T... Args, template<auto> class F>
+struct Map2<Array<T, Args...>, F>
+{
+    using type = Array<T, F<Args>::value...>;
+};
+
+template <int A, int B>
+struct Add
+{
+    constexpr static int value = A + B;
+};
+template <int A, int B>
+struct Mul
+{
+    constexpr static int value = A * B;
+};
+template <typename, template<auto, auto> class, auto>
+struct Fold {};
+template <typename T, template<T, T> class F, T Init, T Head, T... Args>
+struct Fold<Array<T, Head, Args...>, F, Init>
+{
+    constexpr static T value = Fold<Array<T, Args...>, F, F<Init, Head>::value>::value;    
+};
+template <typename T, template<T, T> class F, T Head, T Init>
+struct Fold<Array<T, Head>, F, Init>
+{
+    constexpr static T value = F<Init, Head>::value;    
+};
+template <typename T, template<T, T> class F, T Init>
+struct Fold<Array<T>, F, Init>
+{
+    constexpr static T value = Init;    
+};
+
+template<int Arg>
+struct IsEven
+{
+    constexpr static bool value = Arg % 2 == 0;
+};
+template<int Arg>
+struct IsOdd
+{
+    constexpr static bool value = !IsEven<Arg>::value;
+};
+template <typename, template<auto> class>
+struct Filter {};
+template <typename T, template <T> class F, T Head, T... Args>
+struct Filter<Array<T, Head, Args...>, F>
+{
+    using type = conditional_t<F<Head>::value, 
+                                typename AddToFront<typename Filter<Array<T, Args...>, F>::type, 
+                                                    Head>::type, 
+                                typename Filter<Array<T, Args...>, F>::type>;
+};
+template <typename T, template <T> class F>
+struct Filter<Array<T>, F>
+{
+    using type = Array<T>;
+};
+
+template <typename T>
+struct Sort 
+{
+    using type = T;
+};
+template <typename T, T Head, T... Args>
+struct Sort<Array<T, Head, Args...>>
+{
+    template <T Arg>
+    struct _Greater 
+    {
+        constexpr static bool value = Arg > Head;
+    };
+    template <T Arg>
+    struct _Less 
+    {
+        constexpr static bool value = Arg <= Head;
+    };
+    using less = typename Filter<Array<T, Args...>, _Less>::type;
+    using greater = typename Filter<Array<T, Args...>, _Greater>::type;
+    using type = typename Concat<
+                                typename Sort<less>::type,
+                                typename AddToFront<typename Sort<greater>::type, Head>::type
+                                >::type;
 };
