@@ -3,24 +3,6 @@
 #include <iostream>
 using namespace std;
 
-// template <typename T, T... Args>
-// struct Array
-// {
-//     using type = T;
-// };
-
-// template <typename Array, auto>
-// struct Insert
-// {};
-
-// template <typename T, T ToInsert, T... Args>
-// struct Insert<Array<T, Args...>, ToInsert>
-// {
-//     using type = Array<T, ToInsert>;
-// };
-
-
-
 int main()
 {
     static_assert(Length<Array<int, 1, 2, 3>>::value == 3, "Length error!");
@@ -30,7 +12,8 @@ int main()
    // GetElem<Array<int, 1>, -5>::value;
     static_assert(Find<Array<char, 'a', 'b', 'c'>, 'c'>::value, "Find error!");
     static_assert(!Find<Array<int>, 0>::value, "Find error!");
-
+    static_assert(Find2<Array<char, 'a', 'b', 'c'>, 'c'>::value, "Find error!");
+    static_assert(!Find2<Array<int>, 0>::value, "Find error!");
     using t = AddToEnd<Array<int>, 1>::type;
     cout << typeid(t).name() << endl;
 
@@ -51,5 +34,19 @@ int main()
 
     using t5 = Map<Array<int, 1, 2, 3>, AddOne>::type;
     cout << typeid(t5).name() << endl;
-    
+    using t5 = Map2<Array<int, 1, 2, 3>, AddOne>::type;
+    cout << typeid(t5).name() << endl;
+
+    static_assert(Add<1,2>::value==3, "Add error!");
+
+    static_assert(Fold<Array<int, 1,2,3>, Add, 0>::value == 6, "Fold error");
+    static_assert(Fold<Array<int>, Mul, 1>::value == 1, "Fold error");
+
+    using t6 = Filter<Array<int, 1, 2, 3, 4, 5, 6, 7, 8, 9>, IsOdd>::type;
+    cout << typeid(t6).name() << endl;
+
+    using t7 = Sort<Array<int, 6, 8, 7, 5, 2, 1, 4, 5>>::type;
+    cout << typeid(t7).name() << endl;
+    using t8 = Sort<Array<char, '6', '8', '7', '5', '2', '1', '4', '5'>>::type;
+    cout << typeid(t8).name() << endl;
 }
